@@ -1,0 +1,13 @@
+# Backend / API
+fastapi
+uvicorn[standard]
+pydantic
+
+# Processamento e Machine Learning
+pandas
+lightgbm
+scikit-learn
+joblib
+
+# Frontend / Interface
+streamlit
