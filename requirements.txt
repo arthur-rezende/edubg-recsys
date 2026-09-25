@@ -1,21 +1,13 @@
-# Python >= 3.10
-
 # Backend / API
-fastapi==0.141.1
-uvicorn[standard]==0.53.0
-pydantic==2.13.5
+fastapi
+uvicorn[standard]
+pydantic
 
 # Processamento e Machine Learning
-pandas==3.0.6
-numpy==2.5.3
-lightgbm==4.7.0
-scikit-learn==1.9.1
-joblib==1.6.0
-sentence-transformers==6.1.0
+pandas
+lightgbm
+scikit-learn
+joblib
 
 # Frontend / Interface
-streamlit==1.64.0
-
-# Armazenamento
-# SQLite faz parte da biblioteca padrão do Python (sqlite3)
 streamlit
