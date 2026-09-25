@@ -10,10 +10,15 @@ class EmbeddingsService:
         # Carrega o modelo uma única vez para reutilizá-lo nas requisições.
         self.model = SentenceTransformer(MODEL_NAME)
 
-    def get_embeddings(self, text: str) -> np.ndarray:
+    def get_embeddings(self, texts: str | list[str]) -> np.ndarray:
         # Converte o texto em um vetor e normaliza seu comprimento para facilitar
         # a comparação de similaridade com outros vetores.
-        embeddings = self.model.encode(text, normalize_embeddings=True)
+        embeddings = self.model.encode(
+            texts, 
+            normalize_embeddings=True,
+            batch_size=64,
+            show_progress_bar=isinstance(texts, list),
+        )
 
         # Garante que o resultado seja um array NumPy com números de 32 bits.
         return np.array(embeddings, dtype=np.float32)
