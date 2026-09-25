@@ -11,3 +11,4 @@ data/*
 
 # Dados locais
 *.db
+*.pdf
