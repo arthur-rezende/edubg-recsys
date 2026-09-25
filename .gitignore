@@ -1,1 +1,13 @@
-.venv/.
+# Ambiente virtual
+.venv/
+
+# Cache do Python
+__pycache__/
+*.py[cod]
+
+# Arquivos de ambiente
+.env
+data/*
+
+# Dados locais
+*.db
