@@ -3,6 +3,11 @@ from pydantic import BaseModel, Field
 
 class RecommendationRequest(BaseModel):
     # Dados numéricos da turma e da atividade, validados como positivos.
+    user_id: str = Field(
+        ...,
+        description="Identificador do professor usuário"
+    )
+
     idade_alunos: int = Field(
         ...,
         gt=0,
