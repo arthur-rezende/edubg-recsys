@@ -1,7 +1,25 @@
 # Modelos Pydantic usados para validar entradas e formatar respostas da API.
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 class RecommendationRequest(BaseModel):
+    user_id: str | None = Field(
+        default=None,
+        min_length=1,
+        description="Identificador do professor/usuário, quando houver histórico"
+    )
+
+    mode: Literal["collaborative", "context"] = Field(
+        default="collaborative",
+        description="Modo de recomendação"
+    )
+
+    algorithm: Literal["item", "user"] = Field(
+        default="item",
+        description="Algoritmo colaborativo usado no modo collaborative"
+    )
+
     # Dados numéricos da turma e da atividade, validados como positivos.
     idade_alunos: int = Field(
         ...,
@@ -42,12 +60,12 @@ class RecommendationRequest(BaseModel):
     )
 
 # Estrutura de uma recomendação individual retornada pela API.
-class Recomendation(BaseModel):
+class Recommendation(BaseModel):
     game_id: int | str
     nome: str
-    similaridade: float
+    score: float
     rating: float | None = None
 
 # Estrutura da resposta contendo a lista de recomendações.
 class RecommendationResponse(BaseModel):
-    recomendacoes: list[Recomendation]
+    recomendacoes: list[Recommendation]
