@@ -9,6 +9,7 @@ lightgbm
 scikit-learn
 scipy
 joblib
+sentence-transformers
 
 # Frontend / Interface
 streamlit
