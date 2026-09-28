@@ -1,68 +1,251 @@
 import logging
 
-import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from sklearn.neighbors import NearestNeighbors
 
 from .collaborative_base import CollaborativeFilteringBase
+
 
 logger = logging.getLogger(__name__)
 
 
 class UserBasedRecommender(CollaborativeFilteringBase):
 
-    def __init__(self, interactions_path: str, k_neighbors: int = 20):
+    def __init__(
+        self,
+        interactions_path: str,
+        k_neighbors: int = 20
+    ):
+
         super().__init__(interactions_path)
+
         self.k_neighbors = k_neighbors
-        self.user_similarity = self._build_user_similarity()
 
-    def _build_user_similarity(self) -> pd.DataFrame:
-        matrix_preenchida = self.user_item_matrix.fillna(0)
+        self.neighbor_model = NearestNeighbors(
+            n_neighbors=min(
+                self.k_neighbors + 1,
+                self.user_item_matrix.shape[0]
+            ),
+            metric="cosine",
+            algorithm="brute"
+        )
 
-        similarity = cosine_similarity(matrix_preenchida)
-        matrix = pd.DataFrame(
-            similarity,
-            index=matrix_preenchida.index,
-            columns=matrix_preenchida.index,
+        self.neighbor_model.fit(
+            self.user_item_matrix
         )
 
         logger.info(
-            "User-Based ajustado: %d usuários, %d jogos.",
+            "User-Based: %d usuários, %d jogos.",
             self.user_item_matrix.shape[0],
-            self.user_item_matrix.shape[1],
+            self.user_item_matrix.shape[1]
         )
-        return matrix
 
-    def recommend(self, user_id: str, top_k: int = 5) -> list[dict]:
+    def _get_similar_users_batch(
+        self,
+        user_indices: list[int]
+    ):
 
-        if user_id not in self.user_item_matrix.index:
-            logger.info("Usuário %s sem interações (cold start).", user_id)
+        if not user_indices:
             return []
 
-        known_games = self.get_known_games(user_id)
+        user_vectors = self.user_item_matrix[
+            user_indices
+        ]
 
-        # k vizinhos mais parecidos (exclui o próprio usuário)
-        similares = self.user_similarity.loc[user_id].drop(index=user_id)
-        vizinhos = similares.sort_values(ascending=False).head(self.k_neighbors)
-        vizinhos = vizinhos[vizinhos > 0]
+        distances, indices = self.neighbor_model.kneighbors(
+            user_vectors,
+            return_distance=True
+        )
 
-        if vizinhos.empty:
+        similarities = 1.0 - distances
+
+        results = []
+
+        for current_user_index, row_indices, row_similarities in zip(
+            user_indices,
+            indices,
+            similarities
+        ):
+
+            neighbors = []
+
+            for neighbor_index, similarity in zip(
+                row_indices,
+                row_similarities
+            ):
+
+                if neighbor_index == current_user_index:
+                    continue
+
+                if similarity <= 0:
+                    continue
+
+                neighbors.append(
+                    (
+                        neighbor_index,
+                        float(similarity)
+                    )
+                )
+
+            results.append(neighbors)
+
+        return results
+
+    def _recommend_from_neighbors(
+        self,
+        user_id: str,
+        similar_users,
+        top_k: int
+    ) -> list[dict]:
+
+        known_games = self.get_known_games(
+            user_id
+        )
+
+        if not similar_users:
             return []
 
-        # score(j)
-        notas_vizinhos = self.user_item_matrix.loc[vizinhos.index].fillna(0)
+        scores = {}
+        similarity_sums = {}
 
-        numerador = notas_vizinhos.mul(vizinhos, axis=0).sum(axis=0)
-        denominador = vizinhos.sum()
+        for neighbor_index, similarity in similar_users:
 
-        scores = numerador / denominador
+            neighbor_row = self.user_item_matrix[
+                neighbor_index
+            ]
 
-        # exclui jogos já avaliados
-        scores = scores.drop(index=known_games, errors="ignore")
-        scores = scores[scores > 0]
+            for game_index, rating in zip(
+                neighbor_row.indices,
+                neighbor_row.data
+            ):
 
-        top = scores.sort_values(ascending=False).head(top_k)
+                game_id = self.index_to_game[
+                    game_index
+                ]
+
+                if game_id in known_games:
+                    continue
+
+                scores[game_id] = (
+                    scores.get(game_id, 0.0)
+                    + similarity * float(rating)
+                )
+
+                similarity_sums[game_id] = (
+                    similarity_sums.get(game_id, 0.0)
+                    + similarity
+                )
+
+        if not scores:
+            return []
+
+        ranked = sorted(
+            (
+                (
+                    game_id,
+                    scores[game_id] / similarity_sums[game_id]
+                )
+                for game_id in scores
+                if similarity_sums[game_id] > 0
+            ),
+            key=lambda item: item[1],
+            reverse=True
+        )[:top_k]
 
         return [
-            {"game_id": int(game_id), "score": float(score)}
-            for game_id, score in top.items()
+            {
+                "game_id": int(game_id),
+                "score": float(score)
+            }
+            for game_id, score in ranked
         ]
+
+    def recommend(
+        self,
+        user_id: str,
+        top_k: int = 5
+    ) -> list[dict]:
+
+        user_index = self.get_user_index(
+            user_id
+        )
+
+        if user_index is None:
+
+            logger.info(
+                "Usuário %s sem interações (cold start).",
+                user_id
+            )
+
+            return []
+
+        similar_users = self._get_similar_users_batch(
+            [user_index]
+        )[0]
+
+        return self._recommend_from_neighbors(
+            user_id,
+            similar_users,
+            top_k
+        )
+
+    def recommend_batch(
+        self,
+        user_ids: list[str],
+        top_k: int = 5
+    ) -> dict:
+
+        valid_users = []
+        valid_indices = []
+
+        for user_id in user_ids:
+
+            user_index = self.get_user_index(
+                user_id
+            )
+
+            if user_index is None:
+                continue
+
+            valid_users.append(user_id)
+            valid_indices.append(user_index)
+
+        if not valid_users:
+            return {}
+
+        similar_users_batch = []
+
+        batch_size = 256
+
+        for start in range(
+            0,
+            len(valid_indices),
+            batch_size
+        ):
+
+            batch_indices = valid_indices[
+                start:start + batch_size
+            ]
+
+            similar_users_batch.extend(
+                self._get_similar_users_batch(
+                    batch_indices
+                )
+            )
+
+        results = {}
+
+        for user_id, similar_users in zip(
+            valid_users,
+            similar_users_batch
+        ):
+
+            results[user_id] = (
+                self._recommend_from_neighbors(
+                    user_id,
+                    similar_users,
+                    top_k
+                )
+            )
+
+        return results
