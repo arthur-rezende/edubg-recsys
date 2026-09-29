@@ -13,3 +13,4 @@ sentence-transformers
 
 # Frontend / Interface
 streamlit
+requests

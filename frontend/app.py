@@ -1,5 +1,6 @@
 import streamlit as st
 
+from api import api_is_up, get_recommendations, send_evaluation
 from auth import authenticate, ensure_demo_user
 from components import (
     render_empty_state,
@@ -38,6 +39,39 @@ if "authenticated_user" not in st.session_state:
 
 render_topbar()
 
+with st.expander("Recomendações para sua turma", expanded=False):
+    if not api_is_up():
+        st.warning("Backend offline.")
+    else:
+        with st.form("recomendar"):
+            modo = st.radio("Modo", ["collaborative", "context"], horizontal=True)
+            c1, c2, c3 = st.columns(3)
+            idade = c1.number_input("Idade dos alunos", 5, 99, 12)
+            qtd = c2.number_input("Quantidade de alunos", 1, 100, 4)
+            tempo = c3.number_input("Tempo disponível (min)", 5, 600, 50)
+            objetivo = st.text_input("Objetivo pedagógico", "Desenvolver raciocínio lógico")
+            contexto = st.text_input("Contexto da aula", "Turma do ensino fundamental")
+            enviar = st.form_submit_button("Recomendar")
+
+        if enviar:
+            with st.spinner("Calculando recomendações..."):
+                recs = get_recommendations({
+                    "user_id": st.session_state.authenticated_user,
+                    "mode": modo,
+                    "idade_alunos": idade,
+                    "quantidade_alunos": qtd,
+                    "tempo_disponivel": tempo,
+                    "objetivo_pedagogico": objetivo,
+                    "contexto": contexto,
+                    "top_k": 5,
+                })
+            ids = [r["game_id"] for r in recs]
+            recomendados = games.set_index("ID").loc[
+                [i for i in ids if i in set(games["ID"])]
+            ].reset_index()
+            render_filtered_grid(recomendados, key_prefix="recs")
+
+
 selected_game_id = st.query_params.get("game_id")
 if selected_game_id is not None:
     try:
@@ -54,6 +88,20 @@ if selected_game_id is not None:
             st.query_params.pop("game_id", None)
             st.rerun()
         render_game_details(selected_game.iloc[0])
+
+        with st.form("avaliar"):
+            nota = st.slider("Sua avaliação", 0.0, 10.0, 7.0, 0.5)
+            if st.form_submit_button("Enviar avaliação"):
+                try:
+                    send_evaluation({
+                        "user_id": st.session_state.authenticated_user,
+                        "game_id": selected_game_id,
+                        "rating": nota,
+                    })
+                    st.success("Avaliação salva!")
+                except Exception as erro:
+                    st.error(f"Não foi possível salvar: {erro}")
+
         st.stop()
 
 search_col, genre_col, age_col, time_col = st.columns([2.2, 1.25, 1.15, 1.15])

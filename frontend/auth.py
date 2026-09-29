@@ -9,7 +9,7 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = PROJECT_ROOT / "backend" / "data" / "app.db"
-INTERACTIONS_PATH = PROJECT_ROOT / "data" / "processed" / "interactions.csv"
+INTERACTIONS_PATH = PROJECT_ROOT / "backend" / "data" / "processed" / "interactions.csv"
 
 
 CREATE_USERS_SQL = """

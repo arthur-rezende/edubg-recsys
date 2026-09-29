@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "processed" / "games.csv"
+DATA_PATH = Path(__file__).resolve().parents[1] / "backend" / "data" / "processed" / "games.csv"
 IMAGE_URLS = [
     "https://picsum.photos/seed/meeple-market-1/1200/800",
     "https://picsum.photos/seed/meeple-market-2/1200/800",
