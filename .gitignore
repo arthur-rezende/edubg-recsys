@@ -9,6 +9,7 @@ __pycache__/
 .env
 data/*
 backend/data/
+.agents/
 
 # Dados locais
 *.db
