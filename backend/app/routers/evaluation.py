@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Request
 
 from ..database import get_avaliacao_by_id, get_avaliacoes, insert_avaliacao
-from ..schemas import Avaliacao, AvaliacaoCreate
+from ..schemas import CreateEvaluation, Evaluation
 
 router = APIRouter(prefix="/avaliacoes", tags=["avaliacoes"])
 
 
-@router.post("", response_model=Avaliacao, status_code=201)
-def criar_avaliacao(avaliacao: AvaliacaoCreate, request: Request):
+@router.post("", response_model=Evaluation, status_code=201)
+def criar_avaliacao(avaliacao: CreateEvaluation, request: Request):
     # Se o serviço estiver carregado, valida se o jogo existe no catálogo
     service = getattr(request.app.state, "service", None)
     if service is not None and avaliacao.game_id not in service.games_by_id.index:
@@ -27,6 +27,6 @@ def criar_avaliacao(avaliacao: AvaliacaoCreate, request: Request):
     return get_avaliacao_by_id(novo_id)
 
 
-@router.get("", response_model=list[Avaliacao])
+@router.get("", response_model=list[Evaluation])
 def listar_avaliacoes(user_id: str | None = None):
     return get_avaliacoes(user_id)
