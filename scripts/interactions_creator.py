@@ -6,7 +6,7 @@ from preprocessing import Preprocessor, read_csv_with_utf8_fallback
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = PROJECT_ROOT / "data"
+DATA_DIR = PROJECT_ROOT / "backend" / "data"
 OUTPUT_DIR = DATA_DIR / "processed"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 

@@ -12,6 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 interactions_path = (
     PROJECT_ROOT
+    / "backend"
     / "data"
     / "processed"
     / "interactions.csv"
