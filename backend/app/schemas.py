@@ -21,11 +21,6 @@ class RecommendationRequest(BaseModel):
     )
 
     # Dados numéricos da turma e da atividade, validados como positivos.
-    user_id: str = Field(
-        ...,
-        description="Identificador do professor usuário"
-    )
-
     idade_alunos: int = Field(
         ...,
         gt=0,
@@ -74,3 +69,26 @@ class Recommendation(BaseModel):
 # Estrutura da resposta contendo a lista de recomendações.
 class RecommendationResponse(BaseModel):
     recomendacoes: list[Recommendation]
+
+class CreateEvaluation(BaseModel):
+    user_id: str = Field(..., min_length=1, description="Identificador do professor")
+    game_id: int = Field(..., gt=0, description="ID do jogo no BGG")
+    rating: float = Field(..., ge=0, le=10, description="Nota de 0 a 10")
+
+    idade_alunos: int | None = Field(default=None, gt=0)
+    quantidade_alunos: int | None = Field(default=None, gt=0)
+    tempo_disponivel: int | None = Field(default=None, gt=0)
+    objetivo_pedagogico: str | None = None
+    contexto: str | None = None
+
+class Evaluation(BaseModel):
+    id: int
+    user_id: str
+    game_id: int
+    rating: float
+    student_age: int | None
+    student_count: int | None
+    class_duration: int | None
+    pedagogical_objective: str | None
+    context: str | None
+    created_at: str

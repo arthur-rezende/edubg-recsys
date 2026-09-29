@@ -9,7 +9,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "data" / "app.db"
+DB_PATH = Path(__file__).resolve().parents[1] / "data" / "app.db"
 
 CREATE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS avaliacoes (
@@ -24,6 +24,17 @@ CREATE TABLE IF NOT EXISTS avaliacoes (
     context TEXT,
     created_at TEXT NOT NULL
 );
+"""
+
+CREATE_INDEX_SQL = """
+CREATE INDEX IF NOT EXISTS idx_avaliacoes_user ON avaliacoes(user_id);
+"""
+
+INSERT_SQL = """
+INSERT INTO avaliacoes (
+    user_id, game_id, rating, student_age, student_count,
+    class_duration, pedagogical_objective, context, created_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 """
 
 
@@ -47,6 +58,7 @@ def init_db() -> None:
     # Iniciar db, cria a tabela 'avaliacoes'
     with get_connection() as conn:
         conn.execute(CREATE_TABLE_SQL)
+        conn.execute(CREATE_INDEX_SQL)
     logger.info("Banco de dados iniciado! Path: %s", DB_PATH)
 
 
@@ -65,12 +77,21 @@ def insert_avaliacao(
 
     with get_connection() as conn:
         cursor = conn.execute(
+            INSERT_SQL,
             (
                 user_id, game_id, rating, student_age, student_count,
                 class_duration, pedagogical_objective, context, created_at,
             ),
         )
         return cursor.lastrowid
+
+
+def get_avaliacao_by_id(avaliacao_id: int) -> dict | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT * FROM avaliacoes WHERE id = ?", (avaliacao_id,)
+        ).fetchone()
+        return dict(row) if row else None 
 
 
 def get_avaliacoes(user_id: str | None = None) -> list[dict]:
@@ -84,6 +105,14 @@ def get_avaliacoes(user_id: str | None = None) -> list[dict]:
         rows = conn.execute(query, params).fetchall()
         return [dict(row) for row in rows]
 
+def get_rated_game_id(user_id: str) -> set[int]:
+    # Jogos que o professor já avaliou
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT DISTINCT game_id FROM avaliacoes WHERE user_id = ?", (user_id,),
+        ).fetchall()
+        return {int(row["game_id"]) for row in rows}
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -95,7 +124,7 @@ if __name__ == "__main__":
         student_age=14,
         student_count=23,
         class_duration=50,
-        pedagocical_objective="Desenvolver uso de lógica de programação",
+        pedagogical_objective="Desenvolver uso de lógica de programação",
         context="Turma do ensino fundamental",
     )
-    print("Avaliação inserida!")
+    print("Avaliação inserida!", get_avaliacao_by_id(novo_id))
