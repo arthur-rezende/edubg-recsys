@@ -5,6 +5,8 @@ from fastapi import FastAPI, HTTPException
 
 from .schemas import (RecommendationRequest, RecommendationResponse)
 from .services.recommendation_service import RecommendationService
+from .database import init_db
+from .routers.evaluation import router as evaluation_router
 
 
 service: RecommendationService | None = None
@@ -13,7 +15,9 @@ service: RecommendationService | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global service
-    service = RecommendationService(Path(__file__).resolve().parents[2])
+    init_db()
+    service = RecommendationService(Path(__file__).resolve().parents[1])
+    app.state.service = service
     yield
     service = None
 
@@ -23,6 +27,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+app.include_router(evaluation_router)
 
 @app.get("/")
 def root():

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from ..database import get_rated_game_id
 from ..recommenders.context_based import ContextBasedRecommender
 from ..recommenders.item_based import ItemBasedRecommender
 from ..recommenders.user_based import UserBasedRecommender
@@ -63,12 +64,18 @@ class RecommendationService:
         if not user_id:
             return set()
 
-        return {
+        # Board Games avaliados pelo usuário no dataset
+        csv_known = {
             int(game_id)
             for game_id in self.recommenders["item"].get_known_games(
                 user_id
             )
         }
+
+        # Board Games avaliados pelo usuário na aplicação
+        db_known = get_rated_game_id(user_id)
+
+        return csv_known | db_known
 
     def _context_recommendations(
         self,
@@ -104,7 +111,7 @@ class RecommendationService:
             recommendations = (
                 recommender.recommend(
                     request.user_id,
-                    request.top_k,
+                    request.top_k + len(known_games),
                 )
                 if request.user_id
                 else []
@@ -122,6 +129,9 @@ class RecommendationService:
             game_id = int(
                 recommendation["game_id"]
             )
+
+            if game_id in known_games:
+                continue
 
             if game_id not in self.games_by_id.index:
                 continue
@@ -142,5 +152,8 @@ class RecommendationService:
                     ),
                 }
             )
+
+            if len(response) == request.top_k:
+                break
 
         return response
