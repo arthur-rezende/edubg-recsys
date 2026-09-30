@@ -36,3 +36,9 @@ def get_home_recommendations(user_id: str, top_k: int = 15) -> dict:
     )
     resp.raise_for_status()
     return resp.json()
+
+
+def get_history(user_id: str) -> list[dict]:
+    resp = requests.get(f"{API_URL}/historico/{user_id}", timeout=30)
+    resp.raise_for_status()
+    return resp.json()

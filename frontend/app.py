@@ -1,9 +1,11 @@
 import streamlit as st
+import pandas as pd
 
 from api import (
     api_is_up,
     get_home_recommendations,
     get_recommendations,
+    get_history,
     send_evaluation,
 )
 from auth import authenticate, ensure_demo_user
@@ -132,6 +134,56 @@ with st.expander("Recommendations for your class", expanded=False):
                 recomendados,
                 key_prefix="recs",
             )
+
+with st.expander("My history", expanded=False):
+    if not backend_online:
+        st.warning("Backend offline.")
+    else:
+        try:
+            historico = get_history(st.session_state.authenticated_user)
+        except Exception as erro:
+            historico = None
+            st.error(f"Couldn't load history: {erro}")
+
+        if historico == []:
+            render_empty_state("You haven't rated any games yet.")
+        elif historico:
+            hist = pd.DataFrame(historico)
+
+            # Resumo em números
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Games rated", len(hist))
+            c2.metric("Average rating", f"{hist['rating'].mean():.1f}")
+            c3.metric("Rated in the app", int((hist["origem"] == "app").sum()))
+
+            # Junta com o catálogo para ter nome e gênero (cruzamento por ID, §33.5)
+            tabela = hist.merge(
+                games[["ID", "Name", "genre"]],
+                left_on="game_id",
+                right_on="ID",
+                how="left",
+            )
+
+            st.dataframe(
+                tabela[["Name", "genre", "rating", "origem", "created_at"]],
+                hide_index=True,
+                column_config={
+                    "Name": "Game",
+                    "genre": "Genre",
+                    "rating": st.column_config.NumberColumn("Rating", format="%.1f ★"),
+                    "origem": "Source",
+                    "created_at": st.column_config.DatetimeColumn("Rated at", format="DD/MM/YYYY HH:mm"),
+                },
+            )
+
+            # Aparecer cards com as capas
+            ids = [item["game_id"] for item in historico]
+            game_ids = set(games["ID"])
+            historico_games = games.set_index("ID").loc[
+                [i for i in ids if i in game_ids]
+            ].reset_index()
+            render_filtered_grid(historico_games, key_prefix="history")
+
 
 
 selected_game_id = st.query_params.get("game_id")

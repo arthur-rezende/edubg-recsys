@@ -7,6 +7,7 @@ from .schemas import (RecommendationRequest, RecommendationResponse)
 from .services.recommendation_service import RecommendationService
 from .database import init_db
 from .routers.evaluation import router as evaluation_router
+from .routers.history import router as history_router
 
 
 service: RecommendationService | None = None
@@ -28,6 +29,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(evaluation_router)
+app.include_router(history_router)
 
 @app.get("/")
 def root():
