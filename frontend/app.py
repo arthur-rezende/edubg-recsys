@@ -3,6 +3,7 @@ import streamlit as st
 from api import api_is_up, get_recommendations, send_evaluation
 from auth import authenticate, ensure_demo_user
 from components import (
+    render_bgg_attribution,
     render_empty_state,
     render_hero,
     render_hero_slideshow,
@@ -102,6 +103,7 @@ if selected_game_id is not None:
                 except Exception as erro:
                     st.error(f"Não foi possível salvar: {erro}")
 
+        render_bgg_attribution()
         st.stop()
 
 search_col, genre_col, age_col, time_col = st.columns([2.2, 1.25, 1.15, 1.15])
@@ -199,11 +201,4 @@ else:
         st.markdown('<div class="section-rule"></div>', unsafe_allow_html=True)
         render_game_shelf(shelf_games, eyebrow, title, f"shelf-{shelf_index}")
 
-st.markdown(
-    """
-    <div style="text-align:center; color:#7e806d; font-size:.75rem; margin-top:3.5rem;">
-        TRIFORCE TABLE · Curated from the BoardGameGeek catalogue
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+render_bgg_attribution()

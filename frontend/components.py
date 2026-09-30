@@ -9,6 +9,10 @@ def game_image(game: pd.Series) -> str:
     return str(game["image"])
 
 
+def game_thumbnail(game: pd.Series) -> str:
+    return str(game.get("thumbnail", game["image"]))
+
+
 def game_genre(game: pd.Series) -> str:
     return str(game["genre"])
 
@@ -187,7 +191,7 @@ def render_card(
         f"""
         <a class="game-card-link" href="/?game_id={game_id}" target="_self">
             <article class="{card_class}">
-                <div class="card-image" style="background-image: url('{game_image(game)}');">
+                <div class="card-image" style="background-image: url('{game_thumbnail(game)}');">
                     <span class="rating-pill">★ {decimal_label(game['Rating Average'], 1)}</span>
                     <span class="rank-stamp">#{rank}</span>
                 </div>
@@ -400,5 +404,18 @@ def render_section_heading(eyebrow: str, title: str) -> None:
 def render_empty_state(message: str) -> None:
     st.markdown(
         f'<div class="empty-state">{escape(message)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_bgg_attribution() -> None:
+    # Atribuição exigida pelos termos da BGG XML API (uso não comercial)
+    st.markdown(
+        """
+        <div class="bgg-attribution">
+            TRIFORCE TABLE · Dados e imagens:
+            <a href="https://boardgamegeek.com" target="_blank" rel="noopener">Powered by BoardGameGeek</a>
+        </div>
+        """,
         unsafe_allow_html=True,
     )

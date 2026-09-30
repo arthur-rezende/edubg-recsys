@@ -5,6 +5,8 @@ import streamlit as st
 
 
 DATA_PATH = Path(__file__).resolve().parents[1] / "backend" / "data" / "processed" / "games.csv"
+# Gerado por scripts/fetch_game_images.py (URLs das capas na BGG)
+IMAGES_PATH = DATA_PATH.with_name("game_images.csv")
 IMAGE_URLS = [
     "https://picsum.photos/seed/meeple-market-1/1200/800",
     "https://picsum.photos/seed/meeple-market-2/1200/800",
@@ -56,6 +58,18 @@ def load_games() -> pd.DataFrame:
         IMAGE_URLS[index % len(IMAGE_URLS)]
         for index in range(len(games))
     ]
+
+    # Capas reais da BGG, cruzadas pelo ID; sem capa, fica o placeholder
+    games["thumbnail"] = games["image"]
+    if IMAGES_PATH.exists():
+        images = pd.read_csv(IMAGES_PATH).drop_duplicates("ID").set_index("ID")
+        for column in ["image", "thumbnail"]:
+            real = games["ID"].map(images[column])
+            games[column] = real.where(
+                real.notna() & (real != ""),
+                games[column],
+            )
+
     return games.sort_values("Rating Average", ascending=False).reset_index(drop=True)
 
 

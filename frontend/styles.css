@@ -250,7 +250,7 @@
 .shelf-position { color: var(--muted); text-align: center; font-size: .72rem; padding: .45rem 0 .8rem; }
 
 .detail-layout { display: grid; grid-template-columns: minmax(280px, 40%) 1fr; gap: 2.5rem; align-items: stretch; margin: 1.2rem 0 2.5rem; }
-.detail-cover { min-height: 430px; border-radius: 14px; background-position: center; background-size: cover; box-shadow: var(--shadow); border: 2px solid var(--green); }
+.detail-cover { min-height: 430px; border-radius: 14px; background-position: center; background-size: contain; background-repeat: no-repeat; background-color: var(--paper); box-shadow: var(--shadow); border: 2px solid var(--green); }
 .detail-main { display: flex; flex-direction: column; justify-content: center; }
 .detail-main h1 { color: var(--green); font-family: 'Playfair Display', serif; font-size: clamp(2.6rem, 5vw, 5rem); line-height: .98; letter-spacing: -.045em; margin: .35rem 0 1rem; }
 .detail-description { max-width: 650px; color: var(--muted); line-height: 1.65; font-size: 1rem; margin: 0 0 1.25rem; }
@@ -272,6 +272,8 @@
 .stButton button { border: 1px solid var(--green); background: var(--green); color: #fffdf3; border-radius: 6px; font-weight: 700; }
 .stButton button:hover { background: var(--red); border-color: var(--red); color: #fff; }
 .empty-state { border: 1px dashed #cdbf9f; border-radius: 10px; padding: 2rem; text-align: center; color: var(--muted); background: rgba(255,250,240,.45); }
+.bgg-attribution { text-align: center; color: #7e806d; font-size: .75rem; margin-top: 3.5rem; }
+.bgg-attribution a { color: var(--green); font-weight: 700; }
 
 @media (max-width: 760px) {
     .block-container { padding: .8rem 1rem 3rem; }
