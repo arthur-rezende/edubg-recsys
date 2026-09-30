@@ -219,7 +219,7 @@ class RecommendationService:
                     {
                         "type": "item_based",
                         "title": (
-                            f"Jogos similares a {self._game_name(game_id)}"
+                            f"Games similar to {self._game_name(game_id)}"
                         ),
                         "items": items,
                     }
@@ -240,8 +240,8 @@ class RecommendationService:
                     {
                         "type": "user_based",
                         "title": (
-                            "O que os jogadores que gostaram de "
-                            f"{self._game_name(game_id)} estão jogando"
+                            "What players who liked "
+                            f"{self._game_name(game_id)} are playing"
                         ),
                         "items": items,
                     }

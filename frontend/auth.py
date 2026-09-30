@@ -38,7 +38,7 @@ def _select_demo_user() -> tuple[str, int]:
     counts = interactions["user_id"].value_counts()
     eligible = counts[counts > 20]
     if eligible.empty:
-        raise ValueError("Nenhum usuário com mais de 20 avaliações foi encontrado.")
+        raise ValueError("No user with more than 20 ratings was found.")
     return str(eligible.index[0]), int(eligible.iloc[0])
 
 

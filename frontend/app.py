@@ -69,48 +69,48 @@ render_topbar()
 
 backend_online = backend_is_up_cached()
 
-with st.expander("Recomendações para sua turma", expanded=False):
+with st.expander("Recommendations for your class", expanded=False):
     if not backend_online:
         st.warning("Backend offline.")
     else:
         with st.form("recomendar"):
             modo = st.radio(
-                "Modo",
+                "Mode",
                 ["collaborative", "context"],
                 horizontal=True,
             )
 
             c1, c2, c3 = st.columns(3)
             idade = c1.number_input(
-                "Idade dos alunos",
+                "Students' age",
                 5,
                 99,
                 12,
             )
             qtd = c2.number_input(
-                "Quantidade de alunos",
+                "Number of students",
                 1,
                 100,
                 4,
             )
             tempo = c3.number_input(
-                "Tempo disponível (min)",
+                "Available time (min)",
                 5,
                 600,
                 50,
             )
             objetivo = st.text_input(
-                "Objetivo pedagógico",
-                "Desenvolver raciocínio lógico",
+                "Pedagogical objective",
+                "Develop logical reasoning",
             )
             contexto = st.text_input(
-                "Contexto da aula",
-                "Turma do ensino fundamental",
+                "Class context",
+                "Elementary school class",
             )
-            enviar = st.form_submit_button("Recomendar")
+            enviar = st.form_submit_button("Recommend")
 
         if enviar:
-            with st.spinner("Calculando recomendações..."):
+            with st.spinner("Calculating recommendations..."):
                 recs = get_recommendations({
                     "user_id": st.session_state.authenticated_user,
                     "mode": modo,
@@ -157,14 +157,14 @@ if selected_game_id is not None:
 
         with st.form("avaliar"):
             nota = st.slider(
-                "Sua avaliação",
+                "Your rating",
                 0.0,
                 10.0,
                 7.0,
                 0.5,
             )
 
-            if st.form_submit_button("Enviar avaliação"):
+            if st.form_submit_button("Submit rating"):
                 try:
                     send_evaluation({
                         "user_id": st.session_state.authenticated_user,
@@ -173,10 +173,10 @@ if selected_game_id is not None:
                     })
 
                     load_home_recommendations.clear()
-                    st.success("Avaliação salva!")
+                    st.success("Rating saved!")
                     st.rerun()
                 except Exception as erro:
-                    st.error(f"Não foi possível salvar: {erro}")
+                    st.error(f"Couldn't save: {erro}")
 
         render_bgg_attribution()
         st.stop()
@@ -330,7 +330,7 @@ else:
         )
     else:
         try:
-            with st.spinner("Montando suas recomendações..."):
+            with st.spinner("Building your recommendations..."):
                 home = load_home_recommendations(
                     st.session_state.authenticated_user,
                     top_k=15,
@@ -340,7 +340,7 @@ else:
 
             if not sections:
                 render_empty_state(
-                    "Ainda não há recomendações suficientes para este usuário."
+                    "Not enough recommendations for this user yet."
                 )
             else:
                 for index, section in enumerate(sections):
@@ -360,7 +360,7 @@ else:
                             if section.get("type") == "item_based"
                             else "User-Based"
                         ),
-                        section.get("title", "Recomendações"),
+                        section.get("title", "Recommendations"),
                         f"home-{index}",
                     )
 
@@ -371,7 +371,7 @@ else:
                         )
         except Exception as erro:
             st.error(
-                f"Não foi possível carregar as recomendações: {erro}"
+                f"Couldn't load recommendations: {erro}"
             )
 
 render_bgg_attribution()
