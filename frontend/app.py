@@ -29,14 +29,25 @@ apply_styles()
 games = load_games()
 
 demo_user = ensure_demo_user()
+
+# NOVO: Recupera o usuário da URL (útil para F5 / refresh)
+if "auth_user" in st.query_params:
+    st.session_state.authenticated_user = st.query_params["auth_user"]
+
 if "authenticated_user" not in st.session_state:
     user_id, password, submitted = render_login(demo_user)
     if submitted:
         if authenticate(user_id, password):
             st.session_state.authenticated_user = user_id.strip()
+            # NOVO: Salva na URL para sobreviver a recarregamentos
+            st.query_params["auth_user"] = user_id.strip()
             st.rerun()
         st.error("Username or password not recognized.")
     st.stop()
+else:
+    # Garante que a URL sempre mantenha o auth_user para não perdê-lo
+    if st.query_params.get("auth_user") != st.session_state.authenticated_user:
+        st.query_params["auth_user"] = st.session_state.authenticated_user
 
 render_topbar()
 
