@@ -69,6 +69,11 @@
 [data-testid="stTextInput"] label p {
     color: #000 !important;
 }
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] span {
+    color: #000 !important;
+}
 [data-testid="stTextInput"] input {
     color: #000 !important;
     caret-color: #000;

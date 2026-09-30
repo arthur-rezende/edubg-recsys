@@ -100,14 +100,17 @@ def render_topbar() -> None:
     )
 
 
-def render_hero(game: pd.Series) -> None:
-    # NOVO: Pega o usuário logado para repassar no link HTML
-    auth_user = st.session_state.get("authenticated_user", "")
-    auth_qs = f"&auth_user={urllib.parse.quote(auth_user)}" if auth_user else ""
+def _detail_url(game_id: int) -> str:
+    """URL de detalhes preservando filtros e autenticação atuais."""
+    params = {key: value for key, value in st.query_params.items()}
+    params["game_id"] = str(game_id)
+    return "/?" + urllib.parse.urlencode(params)
 
+
+def render_hero(game: pd.Series) -> None:
     st.markdown(
         f"""
-        <a class="hero-link" href="/?game_id={int(game['ID'])}{auth_qs}" target="_self">
+        <a class="hero-link" href="{_detail_url(int(game['ID']))}" target="_self">
             <section class="hero" style="background-image: linear-gradient(90deg, rgba(23,49,31,.96) 0%, rgba(29,58,37,.86) 43%, rgba(29,58,37,.3) 100%), url('{game_image(game)}');">
                 <div class="hero-copy">
                     <span class="hero-badge">#1 TOP RATED · {game_genre(game)}</span>
@@ -192,13 +195,9 @@ def render_card(
     rank = integer_label(game["BGG Rank"])
     game_id = int(game["ID"])
 
-    # NOVO: Pega o usuário logado para repassar no link do card em HTML
-    auth_user = st.session_state.get("authenticated_user", "")
-    auth_qs = f"&auth_user={urllib.parse.quote(auth_user)}" if auth_user else ""
-
     st.markdown(
         f"""
-        <a class="game-card-link" href="/?game_id={game_id}{auth_qs}" target="_self">
+        <a class="game-card-link" href="{_detail_url(game_id)}" target="_self">
             <article class="{card_class}">
                 <div class="card-image" style="background-image: url('{game_thumbnail(game)}');">
                     <span class="rating-pill">★ {decimal_label(game['Rating Average'], 1)}</span>

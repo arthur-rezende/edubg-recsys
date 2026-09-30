@@ -185,6 +185,24 @@ search_col, genre_col, age_col, time_col = st.columns(
     [2.2, 1.25, 1.15, 1.15]
 )
 
+# Filtros persistidos na URL, para sobreviverem à navegação entre páginas.
+_filter_defaults = {
+    "search": "",
+    "genre": "All genres",
+    "age": "Any age",
+    "time": "Any length",
+}
+
+
+def _filter_value(key: str) -> str:
+    return st.query_params.get(key) or _filter_defaults[key]
+
+
+search_value = _filter_value("search")
+genre_value = _filter_value("genre")
+age_value = _filter_value("age")
+time_value = _filter_value("time")
+
 with search_col:
     st.markdown(
         '<div class="filter-label">Find your next table</div>',
@@ -194,6 +212,7 @@ with search_col:
         "Search games",
         placeholder="Search by title, genre or mechanic",
         label_visibility="collapsed",
+        value=search_value,
     )
 
 with genre_col:
@@ -204,9 +223,11 @@ with genre_col:
     genres = ["All genres"] + sorted(
         games["genre"].dropna().unique().tolist()
     )
+    genre_index = genres.index(genre_value) if genre_value in genres else 0
     selected_genre = st.selectbox(
         "Genre",
         genres,
+        index=genre_index,
         label_visibility="collapsed",
     )
 
@@ -215,9 +236,12 @@ with age_col:
         '<div class="filter-label">Age</div>',
         unsafe_allow_html=True,
     )
+    age_options = ["Any age", "10+", "14+", "18+"]
+    age_index = age_options.index(age_value) if age_value in age_options else 0
     selected_age = st.selectbox(
         "Age",
-        ["Any age", "10+", "14+", "18+"],
+        age_options,
+        index=age_index,
         label_visibility="collapsed",
     )
 
@@ -226,11 +250,29 @@ with time_col:
         '<div class="filter-label">Play time</div>',
         unsafe_allow_html=True,
     )
+    time_options = ["Any length", "Under 1 hour", "1–2 hours", "2+ hours"]
+    time_index = time_options.index(time_value) if time_value in time_options else 0
     selected_time = st.selectbox(
         "Play time",
-        ["Any length", "Under 1 hour", "1–2 hours", "2+ hours"],
+        time_options,
+        index=time_index,
         label_visibility="collapsed",
     )
+
+# Sincroniza os filtros de volta para a URL (só quando houver mudança).
+_chosen = {
+    "search": search,
+    "genre": selected_genre,
+    "age": selected_age,
+    "time": selected_time,
+}
+for _key in ["search", "genre", "age", "time"]:
+    _normalized = _chosen[_key] if _chosen[_key] != _filter_defaults[_key] else ""
+    if (st.query_params.get(_key) or "") != _normalized:
+        if _normalized:
+            st.query_params[_key] = _normalized
+        elif _key in st.query_params:
+            del st.query_params[_key]
 
 filtered = filter_games(
     games,
