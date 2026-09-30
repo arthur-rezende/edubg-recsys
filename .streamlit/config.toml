@@ -1,0 +1,8 @@
+# Tema do Streamlit: força o modo claro para os textos não ficarem
+# brancos sobre o fundo creme quando o sistema estiver em modo escuro.
+[theme]
+base = "light"
+primaryColor = "#263d2c"             # verde do projeto (radio, slider, foco)
+backgroundColor = "#f5edda"          # creme (--cream no styles.css)
+secondaryBackgroundColor = "#fffaf0" # papel (--paper no styles.css)
+textColor = "#263126"                # tinta (--ink no styles.css)

@@ -74,6 +74,31 @@
 [data-testid="stWidgetLabel"] span {
     color: #000 !important;
 }
+
+/* Opções do radio (collaborative / context).
+   O "*" pega o texto em qualquer profundidade dentro do label. */
+[data-testid="stRadio"] [role="radiogroup"] label,
+[data-testid="stRadio"] [role="radiogroup"] label * {
+    color: var(--ink) !important;
+}
+
+/* Métricas do histórico (Games rated, Average rating, Rated in the app).
+   O prefixo stMetric deixa o seletor mais forte que a regra do stWidgetLabel. */
+[data-testid="stMetric"] [data-testid="stMetricLabel"],
+[data-testid="stMetric"] [data-testid="stMetricLabel"] * {
+    color: var(--muted) !important;
+}
+[data-testid="stMetric"] [data-testid="stMetricValue"],
+[data-testid="stMetric"] [data-testid="stMetricValue"] * {
+    color: var(--green) !important;
+}
+
+/* Título dos expanders: texto escuro sobre o cabeçalho claro */
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] summary * {
+    color: var(--green) !important;
+    font-weight: 600;
+}
 [data-testid="stTextInput"] input {
     color: #000 !important;
     caret-color: #000;
