@@ -44,3 +44,9 @@ def recommend(request: RecommendationRequest):
     if service is None:
         raise HTTPException(status_code=503, detail="Serviço de recomendação não inicializado")
     return {"recomendacoes": service.recommend(request)}
+
+@app.get("/home-recommendations")
+def home_recommendations(user_id: str, top_k: int = 15):
+    if service is None:
+        raise HTTPException(status_code=503, detail="Serviço de recomendação não inicializado")
+    return {"sections": service.recommend_home(user_id, top_k)}

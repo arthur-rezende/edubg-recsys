@@ -6,7 +6,7 @@ from .collaborative_base import CollaborativeFilteringBase
 
 
 logger = logging.getLogger(__name__)
-
+print(">>> ITEM BASED CARREGADO:", __file__)
 
 class ItemBasedRecommender(CollaborativeFilteringBase):
 
@@ -355,3 +355,43 @@ class ItemBasedRecommender(CollaborativeFilteringBase):
                 ]
 
         return results
+    def recommend_similar_game(
+        self,
+        game_id: int,
+        top_k: int = 15,
+        excluded_game_ids: set[int] | None = None,
+    ) -> list[dict]:
+        game_index = self.get_game_index(game_id)
+        if game_index is None:
+            return []
+
+        distances, indices = self.neighbor_model.kneighbors(
+            self.item_user_matrix.getrow(game_index),
+            return_distance=True,
+        )
+
+        excluded_game_ids = excluded_game_ids or set()
+        recommendations = []
+
+        for neighbor_index, distance in zip(indices[0], distances[0]):
+            candidate_id = int(self.index_to_game[int(neighbor_index)])
+            similarity = 1.0 - float(distance)
+
+            if candidate_id == int(game_id):
+                continue
+            if candidate_id in excluded_game_ids:
+                continue
+            if similarity <= 0:
+                continue
+
+            recommendations.append(
+                {
+                    "game_id": candidate_id,
+                    "score": similarity,
+                }
+            )
+
+            if len(recommendations) == top_k:
+                break
+
+        return recommendations
